@@ -50,22 +50,22 @@
  */
 void LIS3MDL::GetAxes(AxesRaw_TypeDef *pData)
 {
-    char tempReg[] = {0x00};
+    char tempReg[2];
     int16_t pDataRaw[3];
     float sensitivity = 0;
     int ret;
 
     GetAxesRaw(pDataRaw);
 
-    char address = LIS3MDL_M_CTRL_REG2_M;
-    _i2c.write(LIS3MDL_M_MEMS_ADDRESS, &address, 1, true);
-    ret = _i2c.read(LIS3MDL_M_MEMS_ADDRESS, tempReg, 1);
+    tempReg[0] = LIS3MDL_M_CTRL_REG2_M;
+    _i2c.write(LIS3MDL_M_MEMS_ADDRESS, tempReg, 1, true);
+    ret = _i2c.read(LIS3MDL_M_MEMS_ADDRESS, &tempReg[1], 1);
 
     if (ret == 0)
     {
-      tempReg[0] &= LIS3MDL_M_FS_MASK;
+      tempReg[1] &= LIS3MDL_M_FS_MASK;
 
-      switch(tempReg[0])
+      switch(tempReg[1])
       {
         case LIS3MDL_M_FS_4:
           sensitivity = 0.14;
@@ -95,15 +95,15 @@ void LIS3MDL::GetAxes(AxesRaw_TypeDef *pData)
  */
 void LIS3MDL::GetAxesRaw(int16_t *pData)
 {
-    char tempReg[6];
+    char tempReg[7];
     int ret;
 
     pData[0] = pData[1] = pData[2] = 0;
 
-    char address = LIS3MDL_M_OUT_X_L_M;
+    tempReg[0] = LIS3MDL_M_OUT_X_L_M;
 
-    _i2c.write(LIS3MDL_M_MEMS_ADDRESS, &address, 1, true);
-    ret = _i2c.read(LIS3MDL_M_MEMS_ADDRESS, tempReg, 6);
+    _i2c.write(LIS3MDL_M_MEMS_ADDRESS, tempReg, 1, true);
+    ret = _i2c.read(LIS3MDL_M_MEMS_ADDRESS, &tempReg[1], 6);
 
     if (ret == 0)
     {
@@ -120,17 +120,17 @@ void LIS3MDL::GetAxesRaw(int16_t *pData)
  */
 uint8_t LIS3MDL::ReadID(void)
 {
-    char tmp[1];
+    char tmp[2];
     int ret;
 
-    char address = LIS3MDL_M_WHO_AM_I_ADDR;
+    tmp[0] = LIS3MDL_M_WHO_AM_I_ADDR;
 
     /* Read WHO I AM register */
-    _i2c.write(LIS3MDL_M_MEMS_ADDRESS, &address, 1, true);
-    ret =_i2c.read(LIS3MDL_M_MEMS_ADDRESS, tmp, 1);
+    _i2c.write(LIS3MDL_M_MEMS_ADDRESS, tmp, 1, true);
+    ret =_i2c.read(LIS3MDL_M_MEMS_ADDRESS, &tmp[1], 1);
 
     /* Return the ID */
-    return ((ret == 0) ? (uint8_t)tmp[0] : 0);
+    return ((ret == 0) ? (uint8_t)tmp[1] : 0);
 }
 
 /**
@@ -144,60 +144,51 @@ void LIS3MDL::Init() {
     int ret;
 
     /****** Magnetic sensor *******/
-    char address = LIS3MDL_M_CTRL_REG3_M;
-    _i2c.write(LIS3MDL_M_MEMS_ADDRESS, &address, 1, true);
-    ret =_i2c.read(LIS3MDL_M_MEMS_ADDRESS, tmp1, 1);
+    tmp1[0] = LIS3MDL_M_CTRL_REG3_M;
+    _i2c.write(LIS3MDL_M_MEMS_ADDRESS, tmp1, 1, true);
+    ret =_i2c.read(LIS3MDL_M_MEMS_ADDRESS, &tmp1[1], 1);
 
     /* Conversion mode selection */
     if (ret == 0)
     {
-      tmp1[0] &= ~(LIS3MDL_M_MD_MASK);
-      tmp1[0] |= LIS3MDL_M_MD_CONTINUOUS;
-
-      tmp1[1] = tmp1[0];
-      tmp1[0] = LIS3MDL_M_CTRL_REG3_M;
+      tmp1[1] &= ~(LIS3MDL_M_MD_MASK);
+      tmp1[1] |= LIS3MDL_M_MD_CONTINUOUS;
 
       ret = _i2c.write(LIS3MDL_M_MEMS_ADDRESS, tmp1, 2, true);
     }
 
     if (ret == 0)
     {
-      address = LIS3MDL_M_CTRL_REG1_M;
-      _i2c.write(LIS3MDL_M_MEMS_ADDRESS, &address, 1, true);
-      ret =_i2c.read(LIS3MDL_M_MEMS_ADDRESS, tmp1, 1);
+      tmp1[0] = LIS3MDL_M_CTRL_REG1_M;
+      _i2c.write(LIS3MDL_M_MEMS_ADDRESS, tmp1, 1, true);
+      ret =_i2c.read(LIS3MDL_M_MEMS_ADDRESS, &tmp1[1], 1);
     }
 
     if (ret == 0)
     {
       /* Output data rate selection */
-      tmp1[0] &= ~(LIS3MDL_M_DO_MASK);
-      tmp1[0] |= LIS3MDL_M_DO_80;
+      tmp1[1] &= ~(LIS3MDL_M_DO_MASK);
+      tmp1[1] |= LIS3MDL_M_DO_80;
 
       /* X and Y axes Operative mode selection */
-      tmp1[0] &= ~(LIS3MDL_M_OM_MASK);
-      tmp1[0] |= LIS3MDL_M_OM_HP;
-
-      tmp1[1] = tmp1[0];
-      tmp1[0] = LIS3MDL_M_CTRL_REG1_M;
+      tmp1[1] &= ~(LIS3MDL_M_OM_MASK);
+      tmp1[1] |= LIS3MDL_M_OM_HP;
 
       ret = _i2c.write(LIS3MDL_M_MEMS_ADDRESS, tmp1, 2, true);
     }
 
     if (ret == 0)
     {
-      address = LIS3MDL_M_CTRL_REG2_M;
-      _i2c.write(LIS3MDL_M_MEMS_ADDRESS, &address, 1, true);
-      ret =_i2c.read(LIS3MDL_M_MEMS_ADDRESS, tmp1, 1);
+      tmp1[0] = LIS3MDL_M_CTRL_REG2_M;
+      _i2c.write(LIS3MDL_M_MEMS_ADDRESS, tmp1, 1, true);
+      ret =_i2c.read(LIS3MDL_M_MEMS_ADDRESS, &tmp1[1], 1);
     }
 
     if (ret == 0)
     {
       /* Full scale selection */
-      tmp1[0] &= ~(LIS3MDL_M_FS_MASK);
-      tmp1[0] |= LIS3MDL_M_FS_4;
-
-      tmp1[1] = tmp1[0];
-      tmp1[0] = LIS3MDL_M_CTRL_REG2_M;
+      tmp1[1] &= ~(LIS3MDL_M_FS_MASK);
+      tmp1[1] |= LIS3MDL_M_FS_4;
 
       ret = _i2c.write(LIS3MDL_M_MEMS_ADDRESS, tmp1, 2, true);
     }
