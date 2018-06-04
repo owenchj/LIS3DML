@@ -77,6 +77,7 @@ private:
 
     I2C _i2c;
     uint8_t LIS3MDLInitialized;
+    char tmp[7];
 };
 
 #endif // __LIS3MDL_H
