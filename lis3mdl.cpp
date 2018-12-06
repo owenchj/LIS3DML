@@ -105,9 +105,9 @@ void LIS3MDL::GetAxesRaw(int16_t *pData)
 
     if (ret == 0)
     {
-      pData[0] = ((((int16_t)tmp[1]) << 8)+(int16_t)tmp[0]);
-      pData[1] = ((((int16_t)tmp[3]) << 8)+(int16_t)tmp[2]);
-      pData[2] = ((((int16_t)tmp[5]) << 8)+(int16_t)tmp[4]);
+      pData[0] = ((((int16_t)tmp[2]) << 8)+(int16_t)tmp[1]);
+      pData[1] = ((((int16_t)tmp[4]) << 8)+(int16_t)tmp[3]);
+      pData[2] = ((((int16_t)tmp[6]) << 8)+(int16_t)tmp[5]);
     }
 }
 
